@@ -1,0 +1,22 @@
+{
+    "key": "AssetCompressor",
+    "name": "Asset Compressor",
+    "description": "Compresses assets for page speed.",
+    "version": "1.0.0",
+    "documentationUrl": "/plugins/AssetCompressor/docs/doc.html",
+    "priority":0,
+    "type": "addon",
+    "icon": "icon.svg",
+    "icon-src":"https://pixabay.com/vectors/sign-warning-hand-injury-crush-5673717/",
+    "mobileFriendly": true,
+    "hasLocale": false,
+    "authors": [
+        {
+            "name": "Tom Sassen",
+            "email": "tom.sassen@hotmail.com"
+        }
+    ],
+    "require": {
+        "vanilla": ">=3.0"
+    }
+}
