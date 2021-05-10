@@ -23,6 +23,9 @@ class Compressor {
     }
 
     public function getNecessaryHeaderTags(&$tags,&$names,$priority,$type) {
+        if(count($tags)<1){
+            return [];
+        }
         $sign=$priority>0?1:-1;
         $entry = $this->getInfoEntry($tags, $names, $type);
         $unparsable = $entry->strip_redundant_tags($this->tags);
