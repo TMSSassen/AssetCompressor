@@ -40,8 +40,7 @@ class AssetManager {
 
     public function toString() {
         $headers = \apache_request_headers();
-        $output = (strpos($headers['Accept-Encoding'], 'gzip') !== false) ? $this->getCompressed()
-                : $this->getUncompressed();
+        $output = (strpos($headers['Accept-Encoding'], 'gzip') !== false) ? $this->getCompressed() : $this->getUncompressed();
         $this->jsfiles = $this->js = $this->cssfiles = $this->css = $this->jsSrc = $this->cssSrc = [];
         return $output;
     }
@@ -52,9 +51,14 @@ class AssetManager {
                 1, 'js');
         $cssFileTags = $compressor->getNecessaryHeaderTags($this->cssfiles, $this->cssSrc,
                 0, 'css');
-        $jsForInline = $compressor->getNecessaryHeaderTags($this->js, $this->js, 1, 'js');
-        $cssForInline = $compressor->getNecessaryHeaderTags($this->css, $this->css, 0, 'css');
-        $this->smarty->assign('tags', array_merge($jsFileTags,$cssFileTags, $jsForInline,$cssForInline));
+        $jsForInline = $cssForInline = null;
+        if (count($this->js) > 0) {
+            $jsForInline = $compressor->getNecessaryHeaderTags($this->js, $this->js, 1, 'js');
+        }
+        if (count($this->css) > 0) {
+            $cssForInline = $compressor->getNecessaryHeaderTags($this->css, $this->css, 0, 'css');
+        }
+        $this->smarty->assign('tags', array_merge($jsFileTags, $cssFileTags, $jsForInline ?? [], $cssForInline ?? []));
         return $this->smarty->fetch(__DIR__ . "/../template/compressed.tpl");
     }
 

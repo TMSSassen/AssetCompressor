@@ -27,6 +27,7 @@ class MixedTagCollectionConsolidator {
         $this->cssSrc = [];
         $this->deferredsrc = [];
         $this->startPriority = 1;
+        $this->converter=new UrlToPathConverter();
     }
 
     private function addCssTagToBuffer(&$tag) {
@@ -36,7 +37,7 @@ class MixedTagCollectionConsolidator {
 
     private function addExternalJSTagToBuffer(&$tag) {
         if (isset($tag['defer'])) {
-            AssetManager::addJS($tag['src']);
+            AssetManager::addJS($this->converter->getPath($tag));
             return;
         }
         $this->scripts[] = $tag;
