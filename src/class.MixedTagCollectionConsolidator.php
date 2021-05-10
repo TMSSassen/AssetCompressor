@@ -17,42 +17,71 @@ class MixedTagCollectionConsolidator {
 
     private $compressedTags;
 
+    private function init() {
+        $this->compressedTags = [];
+        $this->notParsed = [];
+        $this->scripts = [];
+        $this->sheets = [];
+        $this->deferred = [];
+        $this->jsSrc = [];
+        $this->cssSrc = [];
+        $this->deferredsrc = [];
+        $this->startPriority = 1;
+    }
+
+    private function addCssTagToBuffer(&$tag) {
+        $this->sheets[] = $tag;
+        $this->cssSrc[] = $tag['href'];
+    }
+
+    private function addExternalJSTagToBuffer(&$tag) {
+        if (isset($tag['defer'])) {
+            AssetManager::addJS($tag['src']);
+            return;
+        }
+        $this->scripts[] = $tag;
+        $this->jsSrc[] = $tag['src'];
+    }
+
+    private function addOtherTagToBuffer(&$tag) {
+        $this->flushToCompressedTags($this->scripts, $this->jsSrc, $this->startPriority, 'js');
+        $this->startPriority = $tag['_sort'] + 1;
+        $this->notParsed[] = $tag;
+        $this->scripts = [];
+        $this->jsSrc = [];
+    }
+
     public function consolidateTags(&$tags) {
-        $this->compressedTags=[];
-        $notParsed=[];
-        $scripts  = $sheets = $jsSrc = $cssSrc = [];
-        $startPriority=1;
+        $this->init();
         foreach ($tags as $tag) {
             if ($tag['_tag'] === 'link' && $tag['rel'] === 'stylesheet') {
-                $sheets[] = $tag;
-                $cssSrc[] = $tag['href'];
+                $this->addCssTagToBuffer($tag);
                 continue;
             }
             if ($tag['_tag'] === 'script' && isset($tag['src'])) {
-                $scripts[] = $tag;
-                $jsSrc[] = $tag['src'];
+                $this->addExternalJSTagToBuffer($tag);
                 continue;
             }
-            $this->flushToCompressedTags($scripts,$jsSrc,$startPriority,'js');
-            $startPriority=$tag['_sort']+1;
-            $notParsed[] = $tag;
-            $scripts=[];
-            $jsSrc=[];
+            $this->addOtherTagToBuffer($tag);
         }
-        $this->flushToCompressedTags($sheets,$cssSrc,0,'css');
-        return array_merge($notParsed,$this->getCompressedTags());
+        $this->flushToCompressedTags($this->sheets, $this->cssSrc, 0, 'css');
+        $this->flushToCompressedTags($this->scripts, $this->jsSrc, $this->startPriority, 'js');
+        return array_merge($this->notParsed, $this->getCompressedTags());
     }
-    private $headerTags=[];
-    
-    private function flushToCompressedTags($tags,$names,$priority,$type){
-        if(empty($tags)||empty($names)){
+
+    private $headerTags = [];
+
+    private function flushToCompressedTags($tags, $names, $priority, $type) {
+        if (empty($tags) || empty($names)) {
             return;
         }
-        $compressor=new Compressor();
-        $newtags=$compressor->getNecessaryHeaderTags($tags, $names, $priority, $type);
-        $this->headerTags= array_merge($this->headerTags,$newtags);
+        $compressor = new Compressor();
+        $newtags = $compressor->getNecessaryHeaderTags($tags, $names, $priority, $type);
+        $this->headerTags = array_merge($this->headerTags, $newtags);
     }
-    private function getCompressedTags(){
+
+    private function getCompressedTags() {
         return $this->headerTags;
     }
+
 }
