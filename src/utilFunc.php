@@ -24,7 +24,25 @@ if (!function_exists('apache_request_headers')) {
             }
         }
         return( $arh );
+    }///
+}
+if(!class_exists('ArrayConsolidator')){
+    class ArrayConsolidator
+    {
+        static function consolidate(...$Args)
+        {
+            $total=0;
+            foreach($Args as $array){
+                $total+=count($array);
+            }
+            $newArray=new SplFixedArray($total);
+            $index=0;
+            foreach($Args as $array){
+                foreach($array as $elem){
+                    $newArray[$index++]=$elem;
+                }
+            }
+            return $newArray;
+        }
     }
-
-///
 }

@@ -4,9 +4,7 @@ namespace AssetCompressor;
 if (!defined('APPLICATION')) {
     exit();
 }
-if (!function_exists('\apache_request_headers')) {
-    require_once __DIR__.'/src/apache_request_headers_comp.php';
-}
+require_once __DIR__.'/src/utilFunc.php';
 
 use Gdn_Plugin;
 use HeadModule;

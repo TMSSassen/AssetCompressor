@@ -61,7 +61,7 @@ class InfoEntry {
         }
         return json_encode($serialized);
     }
-    public function strip_redundant_tags(&$tags)
+    public function strip_redundant_tags($tags)
     {
         if(!$this->tags){
             $this->tags=[];

@@ -22,7 +22,7 @@ class Compressor {
         return $this->minifier;
     }
 
-    public function getNecessaryHeaderTags(&$tags,&$names,$priority,$type) {
+    public function getNecessaryHeaderTags($tags,$names,$priority,$type) {
         if(count($tags)<1){
             return [];
         }
@@ -43,10 +43,10 @@ class Compressor {
                 $newtags[] = ["_tag"=>'link','rel'=>'stylesheet', "href" => $src, "_sort" => $priority + $sign*$i];
             }
         }
-        return array_merge($newtags,$unparsable);
+        return \ArrayConsolidator::consolidate($newtags,$unparsable);
     }
 
-    private function getInfoEntry(&$tags, &$sources, $type) {
+    private function getInfoEntry($tags, $sources, $type) {
         $hash = $this->calchash($sources);
         [$needsUpdate, $info] = $this->needsUpdate($type, $hash);
         if ($needsUpdate) {
@@ -55,7 +55,7 @@ class Compressor {
         return $info;
     }
 
-    private function update(&$tags, InfoEntry $info) {
+    private function update($tags, InfoEntry $info) {
         $metaFile = self::path($info->getHash(), $info->getType(),'dat');
         mkdir(dirname($metaFile));
         $this->compressContent($tags, $info);
@@ -64,7 +64,7 @@ class Compressor {
         return $this->leftoverTags;
     }
 
-    private function compressContent(&$tags, $info) {
+    private function compressContent($tags, $info) {
         $minifier = $info->getType() === 'js' ? new JSMinifier() : new CSSMinifier();
         $url2path = new UrlToPathConverter();
         $this->leftoverTags = [];

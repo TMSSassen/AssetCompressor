@@ -30,12 +30,12 @@ class MixedTagCollectionConsolidator {
         $this->converter=new UrlToPathConverter();
     }
 
-    private function addCssTagToBuffer(&$tag) {
+    private function addCssTagToBuffer($tag) {
         $this->sheets[] = $tag;
         $this->cssSrc[] = $tag['href'];
     }
 
-    private function addExternalJSTagToBuffer(&$tag) {
+    private function addExternalJSTagToBuffer($tag) {
         if (isset($tag['defer'])) {
             AssetManager::addJS($this->converter->getPath($tag));
             return;
@@ -44,7 +44,7 @@ class MixedTagCollectionConsolidator {
         $this->jsSrc[] = $tag['src'];
     }
 
-    private function addOtherTagToBuffer(&$tag) {
+    private function addOtherTagToBuffer($tag) {
         $this->flushToCompressedTags($this->scripts, $this->jsSrc, $this->startPriority, 'js');
         $this->startPriority = $tag['_sort'] + 1;
         $this->notParsed[] = $tag;
@@ -52,7 +52,7 @@ class MixedTagCollectionConsolidator {
         $this->jsSrc = [];
     }
 
-    public function consolidateTags(&$tags) {
+    public function consolidateTags($tags) {
         $this->init();
         foreach ($tags as $tag) {
             if ($tag['_tag'] === 'link' && $tag['rel'] === 'stylesheet') {
@@ -67,7 +67,7 @@ class MixedTagCollectionConsolidator {
         }
         $this->flushToCompressedTags($this->sheets, $this->cssSrc, 0, 'css');
         $this->flushToCompressedTags($this->scripts, $this->jsSrc, $this->startPriority, 'js');
-        return array_merge($this->notParsed, $this->getCompressedTags());
+        return \ArrayConsolidator::consolidate($this->notParsed, $this->getCompressedTags());
     }
 
     private $headerTags = [];
@@ -78,7 +78,7 @@ class MixedTagCollectionConsolidator {
         }
         $compressor = new Compressor();
         $newtags = $compressor->getNecessaryHeaderTags($tags, $names, $priority, $type);
-        $this->headerTags = array_merge($this->headerTags, $newtags);
+        $this->headerTags = \ArrayConsolidator::consolidate($this->headerTags, $newtags);
     }
 
     private function getCompressedTags() {

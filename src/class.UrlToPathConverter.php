@@ -15,7 +15,7 @@ namespace AssetCompressor;
  */
 class UrlToPathConverter {
     
-    public function getPath(&$tag)
+    public function getPath($tag)
     {
         if(!is_array($tag)){
             return $tag;
