@@ -67,7 +67,7 @@ class MixedTagCollectionConsolidator {
         }
         $this->flushToCompressedTags($this->sheets, $this->cssSrc, 0, 'css');
         $this->flushToCompressedTags($this->scripts, $this->jsSrc, $this->startPriority, 'js');
-        return \ArrayConsolidator::consolidate($this->notParsed, $this->getCompressedTags());
+        return \ArrayConsolidator::mergeToArray($this->notParsed, $this->getCompressedTags());
     }
 
     private $headerTags = [];
@@ -78,7 +78,7 @@ class MixedTagCollectionConsolidator {
         }
         $compressor = new Compressor();
         $newtags = $compressor->getNecessaryHeaderTags($tags, $names, $priority, $type);
-        $this->headerTags = \ArrayConsolidator::consolidate($this->headerTags, $newtags);
+        $this->headerTags = \ArrayConsolidator::mergeToFixedArrayObject($this->headerTags, $newtags);
     }
 
     private function getCompressedTags() {

@@ -28,7 +28,7 @@ class Compressor {
         }
         $sign=$priority>0?1:-1;
         $entry = $this->getInfoEntry($tags, $names, $type);
-        $unparsable = $entry->strip_redundant_tags($this->tags);
+        $unparsable = $entry->strip_redundant_tags($tags);
         $num = $entry->getNumberOfFiles();
         $hash = $entry->getHash();
         $newtags = [];
@@ -43,7 +43,7 @@ class Compressor {
                 $newtags[] = ["_tag"=>'link','rel'=>'stylesheet', "href" => $src, "_sort" => $priority + $sign*$i];
             }
         }
-        return \ArrayConsolidator::consolidate($newtags,$unparsable);
+        return \ArrayConsolidator::mergeToFixedArrayObject($newtags,$unparsable);
     }
 
     private function getInfoEntry($tags, $sources, $type) {

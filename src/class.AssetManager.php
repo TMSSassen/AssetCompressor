@@ -53,7 +53,7 @@ class AssetManager {
                 0, 'css');
         $jsForInline = $compressor->getNecessaryHeaderTags($this->js, $this->js, 1, 'js');
         $cssForInline = $compressor->getNecessaryHeaderTags($this->css, $this->css, 0, 'css');
-        $this->smarty->assign('tags', \ArrayConsolidator::consolidate($jsFileTags, $cssFileTags, $jsForInline, $cssForInline));
+        $this->smarty->assign('tags', \ArrayConsolidator::mergeToFixedArrayObject($jsFileTags, $cssFileTags, $jsForInline, $cssForInline));
         return $this->smarty->fetch(__DIR__ . "/../template/compressed.tpl");
     }
 

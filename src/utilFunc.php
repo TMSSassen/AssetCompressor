@@ -29,7 +29,7 @@ if (!function_exists('apache_request_headers')) {
 if(!class_exists('ArrayConsolidator')){
     class ArrayConsolidator
     {
-        static function consolidate(...$Args)
+        static function mergeToFixedArrayObject(...$Args)
         {
             $total=0;
             foreach($Args as $array){
@@ -43,6 +43,16 @@ if(!class_exists('ArrayConsolidator')){
                 }
             }
             return $newArray;
+        }
+        static function mergeToArray(...$Args)
+        {
+            $merged=[];
+            foreach($Args as $array){
+                foreach($array as $elem){
+                    $merged[]=$elem;
+                }
+            }
+            return $merged;
         }
     }
 }
