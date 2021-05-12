@@ -19,6 +19,7 @@ class AssetManager {
 
     private $jsfiles = [], $js = [], $cssfiles = [], $css = [], $jsSrc = [], $cssSrc = [];
     private $smarty;
+    private $deferred;
 
     public function addJSFile($js) {
         $this->jsfiles[] = ['_tag' => 'script', 'src' => $js];
@@ -47,19 +48,21 @@ class AssetManager {
 
     public function getCompressed() {
         $compressor = new Compressor();
+        $deferred=$compressor->getNecessaryHeaderTags($this->getDeferredScripts(), $this->getDeferredNames(), 1, 'js');
         $jsFileTags = $compressor->getNecessaryHeaderTags($this->jsfiles, $this->jsSrc,
                 1, 'js');
         $cssFileTags = $compressor->getNecessaryHeaderTags($this->cssfiles, $this->cssSrc,
                 0, 'css');
         $jsForInline = $compressor->getNecessaryHeaderTags($this->js, $this->js, 1, 'js');
         $cssForInline = $compressor->getNecessaryHeaderTags($this->css, $this->css, 0, 'css');
-        $this->smarty->assign('tags', \ArrayConsolidator::mergeToFixedArrayObject($jsFileTags, $cssFileTags, $jsForInline, $cssForInline));
+        $this->smarty->assign('tags', \ArrayConsolidator::mergeToFixedArrayObject($deferred,$cssFileTags,$cssForInline,$jsFileTags,$jsForInline));
         return $this->smarty->fetch(__DIR__ . "/../template/compressed.tpl");
     }
 
     public function getUncompressed() {
         $this->smarty->assign('jsfiles', $this->jsfiles)->assign('inlinejs', $this->js)
-                ->assign('cssfiles', $this->cssfiles)->assign('inlinecss', $this->css);
+                ->assign('cssfiles', $this->cssfiles)->assign('inlinecss', $this->css)
+                ->assign('deferred',$this->deferred);
         return $this->smarty->fetch(__DIR__ . "/../template/uncompressed.tpl");
     }
 
@@ -68,6 +71,7 @@ class AssetManager {
         $smarty->registerPlugin('modifier', 'url', 'asset');
         $smarty->assign('escape_html', true);
         $this->smarty = $smarty;
+        $this->deferred=[];
     }
 
     static function getManager() {
@@ -108,6 +112,18 @@ class AssetManager {
 
     static function printLinks() {
         echo self::getManager()->toString();
+    }
+    
+    public function addDeferredScripts($scripts,$names){
+        $this->deferred[]=$scripts;
+        $this->deferredNames[]=$names;
+    }
+    
+    public function getDeferredScripts(){
+        return \ArrayConsolidator::mergeToFixedArrayObject(...$this->deferred);
+    }
+    public function getDeferredNames(){
+        return \ArrayConsolidator::mergeToFixedArrayObject(...$this->deferredNames);
     }
 
 }

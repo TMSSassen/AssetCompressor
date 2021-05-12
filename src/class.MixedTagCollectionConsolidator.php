@@ -22,12 +22,11 @@ class MixedTagCollectionConsolidator {
         $this->notParsed = [];
         $this->scripts = [];
         $this->sheets = [];
-        $this->deferred = [];
         $this->jsSrc = [];
         $this->cssSrc = [];
-        $this->deferredsrc = [];
+        $this->deferred = [];
         $this->startPriority = 1;
-        $this->converter=new UrlToPathConverter();
+        $this->filefinder=new FileFinder();
     }
 
     private function addCssTagToBuffer($tag) {
@@ -37,7 +36,8 @@ class MixedTagCollectionConsolidator {
 
     private function addExternalJSTagToBuffer($tag) {
         if (isset($tag['defer'])) {
-            AssetManager::addJS($this->converter->getPath($tag));
+            $this->deferredName[]=$this->filefinder->getFilePathFromTag($tag);
+            $this->deferred[]=$tag;
             return;
         }
         $this->scripts[] = $tag;
@@ -67,7 +67,8 @@ class MixedTagCollectionConsolidator {
         }
         $this->flushToCompressedTags($this->sheets, $this->cssSrc, 0, 'css');
         $this->flushToCompressedTags($this->scripts, $this->jsSrc, $this->startPriority, 'js');
-        return \ArrayConsolidator::mergeToArray($this->notParsed, $this->getCompressedTags());
+        AssetManager::getManager()->addDeferredScripts($this->deferred,$this->deferredName);
+        return \ArrayConsolidator::mergeToArray($this->notParsed, ...$this->headerTags);
     }
 
     private $headerTags = [];
@@ -78,11 +79,7 @@ class MixedTagCollectionConsolidator {
         }
         $compressor = new Compressor();
         $newtags = $compressor->getNecessaryHeaderTags($tags, $names, $priority, $type);
-        $this->headerTags = \ArrayConsolidator::mergeToFixedArrayObject($this->headerTags, $newtags);
-    }
-
-    private function getCompressedTags() {
-        return $this->headerTags;
+        $this->headerTags[] = $newtags;
     }
 
 }

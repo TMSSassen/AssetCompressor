@@ -22,11 +22,11 @@ class Compressor {
         return $this->minifier;
     }
 
-    public function getNecessaryHeaderTags($tags,$names,$priority,$type) {
-        if(count($tags)<1){
+    public function getNecessaryHeaderTags($tags, $names, $priority, $type) {
+        if (count($tags) < 1) {
             return [];
         }
-        $sign=$priority>0?1:-1;
+        $sign = $priority > 0 ? 1 : -1;
         $entry = $this->getInfoEntry($tags, $names, $type);
         $unparsable = $entry->strip_redundant_tags($tags);
         $num = $entry->getNumberOfFiles();
@@ -34,16 +34,13 @@ class Compressor {
         $newtags = [];
         for ($i = 0; $i < $num; $i++) {
             $src = \Gdn::request()->url("/plugin/AssetCompressor/$hash/$i/$type");
-            if($type==='js')
-            {
-                $newtags[] = ["_tag" => 'script', "src" => $src, "_sort" => $priority + $sign*$i];
-            }
-            else
-            {
-                $newtags[] = ["_tag"=>'link','rel'=>'stylesheet', "href" => $src, "_sort" => $priority + $sign*$i];
+            if ($type === 'js') {
+                $newtags[] = ["_tag" => 'script', "src" => $src, "_sort" => $priority + $sign * $i];
+            } else {
+                $newtags[] = ["_tag" => 'link', 'rel' => 'stylesheet', "href" => $src, "_sort" => $priority + $sign * $i];
             }
         }
-        return \ArrayConsolidator::mergeToFixedArrayObject($newtags,$unparsable);
+        return \ArrayConsolidator::mergeToFixedArrayObject($newtags, $unparsable);
     }
 
     private function getInfoEntry($tags, $sources, $type) {
@@ -56,8 +53,11 @@ class Compressor {
     }
 
     private function update($tags, InfoEntry $info) {
-        $metaFile = self::path($info->getHash(), $info->getType(),'dat');
-        mkdir(dirname($metaFile));
+        $metaFile = self::path($info->getHash(), $info->getType(), 'dat');
+        $metaDir = dirname($metaFile);
+        if (!is_dir($metaDir)) {
+            mkdir($metaDir);
+        }
         $this->compressContent($tags, $info);
         $info->setUnparsableTags($this->leftoverTags);
         file_put_contents($metaFile, $info->serialize());
@@ -66,11 +66,11 @@ class Compressor {
 
     private function compressContent($tags, $info) {
         $minifier = $info->getType() === 'js' ? new JSMinifier() : new CSSMinifier();
-        $url2path = new UrlToPathConverter();
+        $fileFinder = new FileFinder();
         $this->leftoverTags = [];
         foreach ($tags as $tag) {
-            $path = $url2path->getPath($tag);
-            if (($tag['_hint']??false)!=='inline' && $path) {
+            $path = $fileFinder->getFilePathFromTag($tag);
+            if (($tag['_hint'] ?? false) !== 'inline' && $path) {
                 $minifier->add($path);
                 continue;
             }
@@ -81,8 +81,8 @@ class Compressor {
                 $this->leftoverTags[$tag['href']] = true;
             }
         }
-        $count=$info->countFile();
-        $minifier->gzip(self::path($info->getHash(),$count,$info->getType(),'gz'));
+        $count = $info->countFile();
+        $minifier->gzip(self::path($info->getHash(), $count, $info->getType(), 'gz'));
     }
 
     private function needsUpdate($type, $hash) {
@@ -102,7 +102,7 @@ class Compressor {
     }
 
     static function path(...$params) {
-        return \Gdn::addonManager()->getCacheDir() . "/compressedAssets/". \implode('.', $params);
+        return \Gdn::addonManager()->getCacheDir() . "/compressedAssets/" . \implode('.', $params);
     }
 
 }
