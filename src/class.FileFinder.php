@@ -30,8 +30,8 @@ class FileFinder {
         if(is_file($link)){
             return $link;
         }
-        if(is_file(PATH_ROOT.$link)){
-            return PATH_ROOT.$link;
+        if(is_file($_SERVER['DOCUMENT_ROOT'].$link)){
+            return $_SERVER['DOCUMENT_ROOT'].$link;
         }
         if(filter_var($link,FILTER_VALIDATE_URL)){
             return $this->getPathFromURL($link);
